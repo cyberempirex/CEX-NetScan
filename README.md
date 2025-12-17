@@ -211,7 +211,7 @@ cex-netscan/
 
 ### 📱 Termux (Android)
 
-``bash
+```bash
 pkg update && pkg upgrade -y
 pkg install python git nmap netdiscover -y
 pip install --upgrade pip
@@ -225,7 +225,7 @@ python cex_netscan.py
 
 ### 🐧 Linux
 
-``bash
+```bash
 sudo apt update
 sudo apt install python3 python3-pip git nmap netdiscover -y
 pip3 install requests netifaces
@@ -247,7 +247,7 @@ python3 cex_netscan.py
 3. Add Nmap to PATH
 
 
-``bash
+```bash
 git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 pip install -r requirements.txt
@@ -257,7 +257,7 @@ python cex_netscan.py
 ---
 
 ### 🎮 Usage Examples
-``bash
+```bash
 python cex_netscan.py --quick
 python cex_netscan.py --target 192.168.1.1
 python cex_netscan.py --ports 1-1000
