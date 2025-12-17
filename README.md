@@ -210,8 +210,7 @@ cex-netscan/
 
 ### 📱 Termux (Android)
 ```pkg update && pkg upgrade -y
-pkg install python git nmap netdiscover -y
-pip install --upgrade pip
+pkg install python git nmap -y
 pip install requests netifaces
 git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
