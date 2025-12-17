@@ -209,27 +209,21 @@ cex-netscan/
 ### 🚀 Installation Guide
 
 ### 📱 Termux (Android)
-```
-pkg update && pkg upgrade -y
+```pkg update && pkg upgrade -y
 pkg install python git nmap netdiscover -y
 pip install --upgrade pip
 pip install requests netifaces
 git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 python cex_netscan.py
-
-
 ```
 ### 🐧 Linux
-```
-sudo apt update
+```sudo apt update
 sudo apt install python3 python3-pip git nmap netdiscover -y
 pip3 install requests netifaces
 git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 python3 cex_netscan.py
-
-
 ```
 ### ⌛ Windows
 
@@ -238,24 +232,18 @@ python3 cex_netscan.py
 2. Install Nmap
 
 3. Add Nmap to PATH
-```
-git clone https://github.com/cyberempirex/cex-netscan.git
+```git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 pip install -r requirements.txt
 python cex_netscan.py
-
-
 '''
-🎮 Usage Examples
-
-python cex_netscan.py --quick
+### 🎮 Usage Examples
+```python cex_netscan.py --quick
 python cex_netscan.py --target 192.168.1.1
 python cex_netscan.py --ports 1-1000
 python cex_netscan.py --no-color
-
-
 ```
-⚠️ Platform Limitations
+### ⚠️ Platform Limitations
 
 Platform        LAN Discovery     Reason
 WiFi            ✅ Yes            Full visibility
@@ -287,7 +275,7 @@ You are responsible for compliance with local laws.
 
 ---
 
-🧭 Roadmap
+### 🧭 Roadmap
 
 Version 2.x
 - Improved exports
@@ -302,7 +290,7 @@ Version 3.0
 
 ---
 
-🤝 Contributing
+### 🤝 Contributing
 
 Contributions are welcome only if they respect the **No Fake Data** rule.
 
@@ -314,7 +302,7 @@ Contributions are welcome only if they respect the **No Fake Data** rule.
 
 ---
 
-📄 License
+### 📄 License
 
 MIT License  
 © CyberEmpireX  
@@ -323,7 +311,7 @@ Free for personal and commercial use.
 
 ---
 
-🌐 Community
+### 🌐 Community
 
 GitHub: https://github.com/cyberempirex  
 Telegram: https://t.me/CyberEmpireXChat  
@@ -333,3 +321,5 @@ Website: https://cyberempirex.com
 ---
 
 CEX-NetScan exists to teach truth — not to impress with lies.
+>stay safe,stay secure
+              -cyberempirex
