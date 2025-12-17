@@ -169,8 +169,8 @@ Designed to be usable on low-resource devices, including Android phones.
 
 ---
 
-### 📂 Project Structure
-```text
+### 📁 Project Structure
+
 cex-netscan/
 ├── core/          # Environment & network detection
 │   ├── environment.py
@@ -207,12 +207,10 @@ cex-netscan/
 
 ---
 
+🚀 Installation Guide
 
-# 🚀 Installation Guide
+📱 Termux (Android)
 
-## 📱 Termux (Android)
-
-```bash
 pkg update && pkg upgrade -y
 pkg install python git nmap netdiscover -y
 pip install --upgrade pip
@@ -240,13 +238,9 @@ python3 cex_netscan.py
 
 1. Install Python 3.6+
 
-
 2. Install Nmap
 
-
 3. Add Nmap to PATH
-
-
 
 git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
@@ -263,114 +257,84 @@ python cex_netscan.py --target 192.168.1.1
 python cex_netscan.py --ports 1-1000
 python cex_netscan.py --no-color
 
----
-
-# ⚠️ Platform Limitations (IMPORTANT)
-
-Platform	LAN Discovery	Reason
-
-WiFi	✅	Full LAN visibility
-Mobile Data	❌	CGNAT isolation
-VPN	⚠️	Depends on routing
-Offline	❌	No network
-
-
-CEX-NetScan will not fake LAN devices on mobile networks.
-
 
 ---
 
-### 🔒 Ethical Usage Policy
+⚠️ Platform Limitations
 
-✅ Allowed
+Platform        LAN Discovery     Reason
+WiFi            ✅ Yes            Full visibility
+Mobile Data     ❌ No             CGNAT isolation
+VPN             ⚠️ Depends        Routing rules
+Offline         ❌ No             No network
 
-Your own network
-
-Authorized corporate testing
-
-Educational labs
-
-Research environments
-
-
-❌ Forbidden
-
-Scanning without permission
-
-Attacking systems
-
-Surveillance
-
-Illegal reconnaissance
-
-
-> You are responsible for compliance with local laws.
-
-
+CEX-NetScan will never fake LAN devices on mobile networks.
 
 
 ---
 
-### 🧭 Roadmap
+🔒 Ethical Usage Policy
+
+Allowed:
+- Your own network
+- Authorized corporate testing
+- Educational labs
+- Research environments
+
+Forbidden:
+- Scanning without permission
+- Attacking systems
+- Surveillance
+- Illegal reconnaissance
+
+You are responsible for compliance with local laws.
+
+
+---
+
+🧭 Roadmap
 
 Version 2.x
+- Improved exports
+- Faster scanning logic
+- Better mobile awareness
 
-Improved exports
-
-Faster scanning logic
-
-Better mobile awareness
-
-
-🔹Version 3.0
-
-Web-based UI
-
-Plugin system
-
-Continuous monitoring
-
+Version 3.0
+- Web-based UI
+- Plugin system
+- Continuous monitoring
 
 
 ---
 
-### 🤝 Contributing
+🤝 Contributing
 
-Contributions are welcome only if they respect the “No Fake Data” rule.
+Contributions are welcome only if they respect the **No Fake Data** rule.
 
-Clear logic
-
-Defensive coding
-
-Cross-platform testing
-
-Honest documentation
-
+- Clear logic
+- Defensive coding
+- Cross-platform testing
+- Honest documentation
 
 
 ---
 
-### 📄 License
+📄 License
 
-MIT License
-© CyberEmpireX
-
+MIT License  
+© CyberEmpireX  
 Free for personal and commercial use.
 
 
 ---
 
-### 🌐 Community
+🌐 Community
 
-GitHub: https://github.com/cyberempirex
-
-Telegram: https://t.me/CyberEmpireXChat
-
+GitHub: https://github.com/cyberempirex  
+Telegram: https://t.me/CyberEmpireXChat  
 Website: https://cyberempirex.com
-
 
 
 ---
 
-> CEX-NetScan exists to teach truth — not to impress with lies.
-
+CEX-NetScan exists to teach truth — not to impress with lies.
