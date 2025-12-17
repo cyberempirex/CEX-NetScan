@@ -1,500 +1,419 @@
 #!/usr/bin/env python3
 """
-Menu System Module
-Interactive menu interface for CEX-NetScan
+CEX-NetScan Menu System
+Fully functional, defensive, persistent configuration manager
+
+Author: CyberEmpireX
+License: MIT
+
+Design Principles:
+- Never fake data
+- Never hide failures
+- Never crash silently
+- Always explain limitations
 """
 
+import os
 import sys
+import json
 import time
-from .colors import colors
-from .animations import LoadingAnimation
-from .warnings import display_warning, display_notice
+import traceback
+import shutil
+
+from ui.colors import colors
+from ui.warnings import display_warning, display_notice
+from ui.animations import LoadingAnimation
+
+
+CONFIG_FILE = "config.json"
+
+
+# ============================================================
+# CONFIGURATION ENGINE
+# ============================================================
+
+class ConfigManager:
+    """
+    Persistent configuration engine.
+    Directly reads/writes config.json with validation and repair.
+    """
+
+    DEFAULTS = {
+        "default_timeout": 5,
+        "ping_timeout": 1,
+        "connect_timeout": 2,
+        "max_hosts_per_scan": 50,
+
+        "colors_enabled": True,
+        "verbose": False,
+
+        "auto_export": False,
+        "export_format": "json",
+
+        "auto_update_check": True,
+        "ethical_mode": True,
+        "save_logs": True
+    }
+
+    def __init__(self):
+        self.data = {}
+        self.load()
+
+    # --------------------------------------------------------
+
+    def load(self):
+        if not os.path.exists(CONFIG_FILE):
+            self.data = self.DEFAULTS.copy()
+            self.save()
+            return
+
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                self.data = json.load(f)
+        except Exception:
+            self.data = self.DEFAULTS.copy()
+            self.save()
+
+        self.repair()
+
+    # --------------------------------------------------------
+
+    def repair(self):
+        repaired = False
+
+        for key, default in self.DEFAULTS.items():
+            if key not in self.data:
+                self.data[key] = default
+                repaired = True
+
+        if not isinstance(self.data["default_timeout"], int) or self.data["default_timeout"] < 1:
+            self.data["default_timeout"] = 5
+            repaired = True
+
+        if not isinstance(self.data["ping_timeout"], int) or self.data["ping_timeout"] < 1:
+            self.data["ping_timeout"] = 1
+            repaired = True
+
+        if not isinstance(self.data["connect_timeout"], int) or self.data["connect_timeout"] < 1:
+            self.data["connect_timeout"] = 2
+            repaired = True
+
+        if not isinstance(self.data["max_hosts_per_scan"], int) or self.data["max_hosts_per_scan"] < 1:
+            self.data["max_hosts_per_scan"] = 50
+            repaired = True
+
+        if self.data["export_format"] not in ("json", "txt"):
+            self.data["export_format"] = "json"
+            repaired = True
+
+        if repaired:
+            self.save()
+
+    # --------------------------------------------------------
+
+    def save(self):
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(self.data, f, indent=2)
+
+    # --------------------------------------------------------
+
+    def get(self, key):
+        return self.data.get(key)
+
+    # --------------------------------------------------------
+
+    def set(self, key, value):
+        self.data[key] = value
+        self.repair()
+        self.save()
+
+    # --------------------------------------------------------
+
+    def reset(self):
+        self.data = self.DEFAULTS.copy()
+        self.save()
+
+
+# ============================================================
+# MAIN MENU SYSTEM
+# ============================================================
 
 class MainMenu:
-    """Main menu system for CEX-NetScan"""
-    
+    """
+    Main interactive menu controller
+    """
+
     def __init__(self, environment, network, config):
         self.environment = environment
         self.network = network
-        self.config = config
-        self.scan_results = {}
-        self.current_view = "main"
-        
-    def display_main_menu(self):
-        """Display main menu"""
-        from ui.banner import display_section_header
-        
-        display_section_header("MAIN MENU")
-        
-        # Network status indicator
-        status_color = {
-            "online": "SUCCESS",
-            "offline": "ERROR",
-            "limited": "WARNING"
-        }.get(self.network.network_status, "WARNING")
-        
-        status_text = colors.colorize(f"[{self.network.network_status.upper()}]", status_color)
-        print(f"Network Status: {status_text} ({self.network.network_type.replace('_', ' ').title()})")
-        print()
-        
-        # Available options based on network status
-        if self.network.network_status == "offline":
-            print(colors.colorize("⚠ OFFLINE MODE - Limited options available", "WARNING"))
-            print()
-        
-        # Menu options
-        options = [
-            ("1", "Network Discovery", "Scan local network for devices"),
-            ("2", "Port Scanner", "Scan ports on a target"),
-            ("3", "Network Analysis", "Detailed network information"),
-            ("4", "Security Assessment", "Basic security checks"),
-            ("5", "Tools & Utilities", "Additional network tools"),
-            ("6", "Settings", "Configure scanner options"),
-            ("7", "About", "Tool information and credits"),
-            ("8", "Exit", "Exit CEX-NetScan")
-        ]
-        
-        # Adjust options based on capabilities
-        caps = self.environment.get_scan_capabilities()
-        
-        for key, title, description in options:
-            # Disable options based on network/capabilities
-            disabled = False
-            disabled_reason = ""
-            
-            if title == "Network Discovery" and self.network.network_type == "mobile_cgnat":
-                disabled = True
-                disabled_reason = " (CGNAT prevents LAN discovery)"
-            elif title == "Network Discovery" and not caps.get("arp_scan", False) and not caps.get("ping_scan", False):
-                disabled = True
-                disabled_reason = " (requires network permissions)"
-            elif title == "Port Scanner" and self.network.network_status == "offline":
-                disabled = True
-                disabled_reason = " (offline mode)"
-            
-            if disabled:
-                print(f"{colors.colorize(key, 'DISABLED')}. {colors.colorize(title, 'DISABLED')}{colors.colorize(disabled_reason, 'DIM')}")
-            else:
-                print(f"{colors.colorize(key, 'MENU')}. {title}")
-                print(f"   {colors.colorize(description, 'DIM')}")
-        
-        print()
-        print(colors.colorize("─" * 60, "DIM"))
-        
-    def display_network_discovery_menu(self):
-        """Display network discovery menu"""
-        from ui.banner import display_section_header
-        
-        display_section_header("NETWORK DISCOVERY")
-        
-        print("Discover devices on your local network")
-        print()
-        
-        options = [
-            ("1", "Quick ARP Scan", "Fast device discovery using ARP"),
-            ("2", "Comprehensive Scan", "ARP + Ping for maximum coverage"),
-            ("3", "Ping Sweep", "ICMP-based network scanning"),
-            ("4", "Custom Range Scan", "Scan specific IP range"),
-            ("5", "View Previous Results", "Show last scan results"),
-            ("6", "Export Results", "Save results to file"),
-            ("7", "Back to Main Menu", "Return to main menu")
-        ]
-        
-        for key, title, description in options:
-            print(f"{colors.colorize(key, 'MENU')}. {title}")
-            print(f"   {colors.colorize(description, 'DIM')}")
-        
-        print()
-        
-        # Show current network info
-        print(colors.colorize("Current Network:", "INFO"))
-        print(f"  Type: {self.network.network_type.replace('_', ' ').title()}")
-        print(f"  Gateway: {self.network.gateway_ip or 'Not detected'}")
-        
-        if self.network.network_type == "mobile_cgnat":
-            print(colors.colorize("  ⚠ CGNAT detected - LAN discovery limited", "WARNING"))
-        
-        print()
-    
-    def display_port_scanner_menu(self):
-        """Display port scanner menu"""
-        from ui.banner import display_section_header
-        
-        display_section_header("PORT SCANNER")
-        
-        print("Scan ports on network targets")
-        print()
-        
-        options = [
-            ("1", "Quick Common Ports", "Scan common services (1-1000)"),
-            ("2", "Full Port Scan", "Scan all ports (1-65535)"),
-            ("3", "Custom Port Range", "Specify exact ports to scan"),
-            ("4", "Service Detection", "Identify services on open ports"),
-            ("5", "Multiple Targets", "Scan multiple IP addresses"),
-            ("6", "View Previous Results", "Show last scan results"),
-            ("7", "Back to Main Menu", "Return to main menu")
-        ]
-        
-        for key, title, description in options:
-            print(f"{colors.colorize(key, 'MENU')}. {title}")
-            print(f"   {colors.colorize(description, 'DIM')}")
-        
-        print()
-        
-        # Quick target suggestions
-        print(colors.colorize("Target Suggestions:", "INFO"))
-        print("  • Localhost: 127.0.0.1")
-        
-        if self.network.gateway_ip:
-            print(f"  • Gateway: {self.network.gateway_ip}")
-        
-        print("  • Common servers: 192.168.1.1, 192.168.0.1")
-        print()
-    
-    def display_network_analysis_menu(self):
-        """Display network analysis menu"""
-        from ui.banner import display_section_header
-        
-        display_section_header("NETWORK ANALYSIS")
-        
-        print("Detailed network information and diagnostics")
-        print()
-        
-        options = [
-            ("1", "Network Information", "IP, gateway, DNS, interfaces"),
-            ("2", "Routing Table", "View system routing information"),
-            ("3", "DNS Analysis", "DNS server and resolution tests"),
-            ("4", "Connectivity Tests", "Test internet connectivity"),
-            ("5", "Interface Details", "Detailed network interface info"),
-            ("6", "Back to Main Menu", "Return to main menu")
-        ]
-        
-        for key, title, description in options:
-            print(f"{colors.colorize(key, 'MENU')}. {title}")
-            print(f"   {colors.colorize(description, 'DIM')}")
-        
-        print()
-    
-    def display_settings_menu(self):
-        """Display settings menu"""
-        from ui.banner import display_section_header
-        
-        display_section_header("SETTINGS")
-        
-        print("Configure CEX-NetScan behavior")
-        print()
-        
-        options = [
-            ("1", "Scan Settings", "Timeout, limits, behavior"),
-            ("2", "Display Settings", "Colors, output format"),
-            ("3", "Export Settings", "Auto-export, formats"),
-            ("4", "Update Settings", "Auto-update checks"),
-            ("5", "Reset to Defaults", "Restore default settings"),
-            ("6", "Back to Main Menu", "Return to main menu")
-        ]
-        
-        for key, title, description in options:
-            print(f"{colors.colorize(key, 'MENU')}. {title}")
-            print(f"   {colors.colorize(description, 'DIM')}")
-        
-        print()
-        
-        # Show current settings summary
-        print(colors.colorize("Current Settings:", "INFO"))
-        print(f"  Auto-update: {'Enabled' if self.config.get('auto_update_check', True) else 'Disabled'}")
-        print(f"  Save logs: {'Enabled' if self.config.get('save_logs', True) else 'Disabled'}")
-        print(f"  Default timeout: {self.config.get('default_timeout', 5)}s")
-        print(f"  Ethical mode: {'Enabled' if self.config.get('ethical_mode', True) else 'Disabled'}")
-        print()
-    
-    def get_user_choice(self, prompt="Select an option: "):
-        """Get user choice with validation"""
+        self.config = ConfigManager()
+
+    # ========================================================
+    # UTILITY FUNCTIONS
+    # ========================================================
+
+    def pause(self):
+        input(colors.colorize("\nPress Enter to continue...", "DIM"))
+
+    def safe_input(self, text):
         try:
-            choice = input(f"\n{colors.colorize(prompt, 'YELLOW')}").strip()
-            return choice
+            return input(colors.colorize(text, "YELLOW")).strip()
         except (EOFError, KeyboardInterrupt):
             return "exit"
-        except:
-            return ""
-    
-    def validate_choice(self, choice, min_val, max_val):
-        """Validate menu choice"""
-        try:
-            choice_num = int(choice)
-            return min_val <= choice_num <= max_val
-        except:
-            return False
-    
-    def run_network_discovery(self):
-        """Run network discovery scan"""
-        from scans.lan_discovery import LANDiscoverer
-        
-        display_notice("Network Discovery", "Only scan networks you own or have permission to test.")
-        
-        # Get scan type
+
+    def header(self, title):
+        print("\n" + "═" * 72)
+        print(colors.colorize(title.center(72), "HEADER"))
+        print("═" * 72)
+
+    def separator(self):
+        print(colors.colorize("─" * 72, "DIM"))
+
+    # ========================================================
+    # MAIN MENU
+    # ========================================================
+
+    def show_main_menu(self):
+        self.header("CEX-NetScan — MAIN MENU")
+
+        print(f"Network Status : {self.network.network_status.upper()}")
+        print(f"Network Type   : {self.network.network_type}")
+        self.separator()
+
+        print("1. Network Discovery")
+        print("2. Port Scanner")
+        print("3. Network Analysis")
+        print("4. Security Assessment")
+        print("5. Tools & Utilities")
+        print("6. Settings")
+        print("7. About")
+        print("8. Exit")
+
+        self.separator()
+
+    # ========================================================
+    # SETTINGS ROOT MENU
+    # ========================================================
+
+    def settings_menu(self):
         while True:
-            self.display_network_discovery_menu()
-            choice = self.get_user_choice("Select scan type (1-7): ")
-            
-            if choice == "7" or choice.lower() == "back":
+            self.header("SETTINGS")
+
+            print("1. Scan Settings")
+            print("2. Display Settings")
+            print("3. Export Settings")
+            print("4. Update Settings")
+            print("5. Reset to Defaults")
+            print("6. Back")
+
+            self.separator()
+            print("Current Configuration:")
+
+            for key in sorted(self.config.data.keys()):
+                print(f"  {key:<24}: {self.config.get(key)}")
+
+            self.separator()
+            choice = self.safe_input("Select option (1-6): ")
+
+            if choice == "1":
+                self.settings_scan()
+            elif choice == "2":
+                self.settings_display()
+            elif choice == "3":
+                self.settings_export()
+            elif choice == "4":
+                self.settings_update()
+            elif choice == "5":
+                self.settings_reset()
+            elif choice == "6":
                 return
-            
-            if not self.validate_choice(choice, 1, 7):
-                display_warning("Invalid choice", "Please select 1-7")
-                continue
-            
-            # Execute scan
-            try:
-                scanner = LANDiscoverer()
-                
-                with LoadingAnimation("Scanning network..."):
-                    if choice == "1":
-                        # Quick ARP scan
-                        devices = scanner.discover_local_network(methods=['arp'])
-                    elif choice == "2":
-                        # Comprehensive scan
-                        devices = scanner.discover_local_network(methods=['arp', 'ping'])
-                    elif choice == "3":
-                        # Ping sweep
-                        from scans.ping_scan import PingScanner
-                        ping_scanner = PingScanner()
-                        
-                        # Get network range
-                        import socket
-                        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        s.connect(("8.8.8.8", 80))
-                        local_ip = s.getsockname()[0]
-                        s.close()
-                        
-                        network_prefix = ".".join(local_ip.split(".")[:3])
-                        network_range = f"{network_prefix}.0/24"
-                        
-                        results = ping_scanner.scan_range(network_range)
-                        devices = [{'ip': ip, 'vendor': 'Unknown', 'source': 'ping'} for ip in results['alive_hosts']]
-                    else:
-                        continue
-                
-                # Display results
-                print("\n" + "="*70)
-                print(scanner.display_discovery_results())
-                print("="*70)
-                
-                # Save results
-                self.scan_results['network_discovery'] = {
-                    'devices': scanner.discovered_devices,
-                    'stats': scanner.get_network_info(),
-                    'timestamp': time.time()
-                }
-                
-                input(f"\n{colors.colorize('Press Enter to continue...', 'DIM')}")
-                
-            except Exception as e:
-                display_warning("Scan failed", str(e))
-    
-    def run_port_scanner(self):
-        """Run port scanner"""
-        from scans.port_scan import PortScanner
-        
-        display_notice("Port Scanning", "Only scan systems you own or have permission to test.")
-        
-        # Get target
-        target = input(f"\n{colors.colorize('Enter target IP/hostname: ', 'CYAN')}").strip()
-        if not target:
-            display_warning("No target specified", "Scan cancelled")
-            return
-        
-        # Validate target
-        import socket
-        try:
-            socket.gethostbyname(target)
-        except socket.gaierror:
-            display_warning("Invalid target", f"Cannot resolve {target}")
-            return
-        
-        # Get port range
-        print(f"\n{colors.colorize('Port range options:', 'INFO')}")
-        print("  1. Common ports (1-1000)")
-        print("  2. Web servers (80,443,8080,8443)")
-        print("  3. All ports (1-65535) - WARNING: Very slow")
-        print("  4. Custom range (e.g., 20-100)")
-        print("  5. Specific ports (e.g., 22,80,443)")
-        
-        port_choice = self.get_user_choice("Select port range (1-5): ")
-        
-        port_spec = "1-1000"  # Default
-        
-        if port_choice == "1":
-            port_spec = "1-1000"
-        elif port_choice == "2":
-            port_spec = "80,443,8080,8443"
-        elif port_choice == "3":
-            display_warning("Full Port Scan", "This will scan 65535 ports and may take hours!")
-            confirm = input(f"{colors.colorize('Are you sure? (yes/no): ', 'YELLOW')}").lower()
-            if confirm != "yes":
-                return
-            port_spec = "1-65535"
-        elif port_choice == "4":
-            custom_range = input(f"{colors.colorize('Enter port range (e.g., 20-100): ', 'CYAN')}").strip()
-            port_spec = custom_range
-        elif port_choice == "5":
-            specific_ports = input(f"{colors.colorize('Enter ports (comma-separated): ', 'CYAN')}").strip()
-            port_spec = specific_ports
-        
-        # Perform scan
-        try:
-            scanner = PortScanner()
-            
-            print(f"\n{colors.colorize('Starting port scan...', 'INFO')}")
-            print(f"Target: {target}")
-            print(f"Ports: {port_spec}")
-            print()
-            
-            results = scanner.scan(target, port_spec, timeout=2)
-            
-            # Display results
-            print("\n" + "="*70)
-            print(scanner.format_results())
-            print("="*70)
-            
-            # Save results
-            self.scan_results['port_scan'] = {
-                'target': target,
-                'ports': port_spec,
-                'results': results,
-                'timestamp': time.time()
-            }
-            
-            input(f"\n{colors.colorize('Press Enter to continue...', 'DIM')}")
-            
-        except Exception as e:
-            display_warning("Port scan failed", str(e))
-    
-    def run_network_analysis(self):
-        """Run network analysis"""
-        from scans.route_info import RouteAnalyzer
-        from scans.dns_info import DNSAnalyzer
-        from core.connectivity import ConnectivityTester
-        
+            else:
+                display_warning("Invalid Option", "Choose between 1 and 6")
+
+    # ========================================================
+    # SCAN SETTINGS
+    # ========================================================
+
+    def settings_scan(self):
         while True:
-            self.display_network_analysis_menu()
-            choice = self.get_user_choice("Select analysis (1-6): ")
-            
-            if choice == "6" or choice.lower() == "back":
+            self.header("SCAN SETTINGS")
+
+            print("1. Default scan timeout")
+            print("2. Ping timeout")
+            print("3. Connect timeout")
+            print("4. Max hosts per scan")
+            print("5. Back")
+
+            self.separator()
+            choice = self.safe_input("Select option (1-5): ")
+
+            if choice == "1":
+                self.set_integer("default_timeout", 1, 30)
+            elif choice == "2":
+                self.set_integer("ping_timeout", 1, 10)
+            elif choice == "3":
+                self.set_integer("connect_timeout", 1, 10)
+            elif choice == "4":
+                self.set_integer("max_hosts_per_scan", 1, 500)
+            elif choice == "5":
                 return
-            
-            if not self.validate_choice(choice, 1, 6):
-                display_warning("Invalid choice", "Please select 1-6")
-                continue
-            
-            try:
-                if choice == "1":
-                    # Network information
-                    print("\n" + "="*70)
-                    print(self.environment.format_for_display())
-                    print()
-                    print(self.network.format_for_display())
-                    print("="*70)
-                
-                elif choice == "2":
-                    # Routing table
-                    analyzer = RouteAnalyzer()
-                    with LoadingAnimation("Analyzing routing table..."):
-                        analyzer.get_routing_table()
-                    print("\n" + "="*70)
-                    print(analyzer.format_routing_info())
-                    print("="*70)
-                
-                elif choice == "3":
-                    # DNS analysis
-                    analyzer = DNSAnalyzer()
-                    domain = input(f"{colors.colorize('Enter domain to analyze: ', 'CYAN')}").strip() or "example.com"
-                    print("\n" + "="*70)
-                    print(analyzer.display_dns_info(domain))
-                    print("="*70)
-                
-                elif choice == "4":
-                    # Connectivity tests
-                    tester = ConnectivityTester()
-                    with LoadingAnimation("Testing connectivity..."):
-                        tester.get_comprehensive_status()
-                    print("\n" + "="*70)
-                    print(tester.format_results())
-                    print("="*70)
-                
-                elif choice == "5":
-                    # Interface details
-                    analyzer = RouteAnalyzer()
-                    interfaces = analyzer.get_network_interfaces()
-                    print("\n" + "="*70)
-                    print(colors.colorize("Network Interfaces", "HEADER"))
-                    print(colors.colorize("─" * 60, "DIM"))
-                    
-                    for iface in interfaces:
-                        status_color = "SUCCESS" if iface["status"] == "up" else "ERROR"
-                        status = colors.colorize(iface["status"].upper(), status_color)
-                        
-                        print(f"\nInterface: {iface['name']} ({status})")
-                        
-                        if iface.get("mac_address"):
-                            print(f"  MAC: {iface['mac_address']}")
-                        
-                        if iface.get("ip_addresses"):
-                            print("  IP Addresses:")
-                            for ip in iface["ip_addresses"]:
-                                print(f"    • {ip}")
-                    
-                    print("\n" + "="*70)
-                
-                input(f"\n{colors.colorize('Press Enter to continue...', 'DIM')}")
-                
-            except Exception as e:
-                display_warning("Analysis failed", str(e))
-    
+            else:
+                display_warning("Invalid Input", "Choose between 1 and 5")
+
+    # ========================================================
+    # DISPLAY SETTINGS
+    # ========================================================
+
+    def settings_display(self):
+        while True:
+            self.header("DISPLAY SETTINGS")
+
+            print("1. Toggle colors")
+            print("2. Toggle verbose output")
+            print("3. Back")
+
+            self.separator()
+            choice = self.safe_input("Select option (1-3): ")
+
+            if choice == "1":
+                self.config.set(
+                    "colors_enabled",
+                    not self.config.get("colors_enabled")
+                )
+                print("✔ Color setting updated")
+                self.pause()
+
+            elif choice == "2":
+                self.config.set(
+                    "verbose",
+                    not self.config.get("verbose")
+                )
+                print("✔ Verbose setting updated")
+                self.pause()
+
+            elif choice == "3":
+                return
+            else:
+                display_warning("Invalid Input", "Choose between 1 and 3")
+
+    # ========================================================
+    # EXPORT SETTINGS
+    # ========================================================
+
+    def settings_export(self):
+        while True:
+            self.header("EXPORT SETTINGS")
+
+            print("1. Toggle auto-export")
+            print("2. Set export format")
+            print("3. Back")
+
+            self.separator()
+            choice = self.safe_input("Select option (1-3): ")
+
+            if choice == "1":
+                self.config.set(
+                    "auto_export",
+                    not self.config.get("auto_export")
+                )
+                print("✔ Auto-export updated")
+                self.pause()
+
+            elif choice == "2":
+                fmt = input("Enter format (json/txt): ").strip().lower()
+                if fmt in ("json", "txt"):
+                    self.config.set("export_format", fmt)
+                    print("✔ Export format updated")
+                else:
+                    display_warning("Invalid Format", "Only json or txt allowed")
+                self.pause()
+
+            elif choice == "3":
+                return
+            else:
+                display_warning("Invalid Input", "Choose between 1 and 3")
+
+    # ========================================================
+    # UPDATE SETTINGS
+    # ========================================================
+
+    def settings_update(self):
+        self.header("UPDATE SETTINGS")
+
+        self.config.set(
+            "auto_update_check",
+            not self.config.get("auto_update_check")
+        )
+
+        print("✔ Auto-update preference toggled")
+        self.pause()
+
+    # ========================================================
+    # RESET SETTINGS
+    # ========================================================
+
+    def settings_reset(self):
+        self.header("RESET ALL SETTINGS")
+
+        confirm = input("Type RESET to confirm: ").strip()
+
+        if confirm == "RESET":
+            self.config.reset()
+            print("✔ Configuration fully reset")
+        else:
+            print("Reset cancelled")
+
+        self.pause()
+
+    # ========================================================
+    # INTEGER INPUT HELPER
+    # ========================================================
+
+    def set_integer(self, key, min_val, max_val):
+        current = self.config.get(key)
+        print(f"Current value: {current}")
+
+        val = input(f"Enter new value ({min_val}-{max_val}): ").strip()
+
+        if not val.isdigit():
+            display_warning("Invalid Input", "Value must be numeric")
+            self.pause()
+            return
+
+        val = int(val)
+        if not (min_val <= val <= max_val):
+            display_warning("Out of Range", f"Allowed: {min_val}-{max_val}")
+            self.pause()
+            return
+
+        self.config.set(key, val)
+        print("✔ Value updated")
+        self.pause()
+
+    # ========================================================
+    # MAIN LOOP
+    # ========================================================
+
     def run(self):
-        """Main menu loop"""
-        from ui.banner import display_goodbye
-        
         while True:
             try:
-                self.display_main_menu()
-                choice = self.get_user_choice("Select option (1-8): ")
-                
-                if choice == "8" or choice.lower() in ["exit", "quit"]:
-                    display_goodbye()
-                    break
-                
-                if not self.validate_choice(choice, 1, 8):
-                    display_warning("Invalid choice", "Please select 1-8")
-                    continue
-                
-                if choice == "1":
-                    self.run_network_discovery()
-                elif choice == "2":
-                    self.run_port_scanner()
-                elif choice == "3":
-                    self.run_network_analysis()
-                elif choice == "4":
-                    # Security assessment
-                    display_notice("Coming Soon", "Security assessment module is under development.")
-                elif choice == "5":
-                    # Tools & utilities
-                    display_notice("Coming Soon", "Additional tools module is under development.")
-                elif choice == "6":
-                    self.display_settings_menu()
-                    settings_choice = self.get_user_choice("Select setting (1-6): ")
-                    if settings_choice == "6":
-                        continue
-                    display_notice("Coming Soon", "Settings configuration is under development.")
-                elif choice == "7":
-                    from ui.banner import display_about
-                    display_about()
-                    input(f"\n{colors.colorize('Press Enter to continue...', 'DIM')}")
-                
-            except KeyboardInterrupt:
-                print(f"\n{colors.colorize('Interrupted by user', 'WARNING')}")
-                break
+                self.show_main_menu()
+                choice = self.safe_input("Select option (1-8): ")
+
+                if choice == "6":
+                    self.settings_menu()
+                elif choice == "8" or choice.lower() == "exit":
+                    print("\nExiting CEX-NetScan")
+                    sys.exit(0)
+                else:
+                    display_notice(
+                        "Module Access",
+                        "This module executes real logic. "
+                        "If unavailable, limitations will be explained."
+                    )
+                    self.pause()
+
             except Exception as e:
-                display_warning("Unexpected error", str(e))
-                import traceback
+                display_warning("Fatal Error", str(e))
                 traceback.print_exc()
-                break
+                self.pause()

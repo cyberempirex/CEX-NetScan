@@ -3,7 +3,11 @@
 Port Scanning Module
 TCP-based port scanning with service detection
 """
+import json
 
+def load_config():
+    with open("config.json") as f:
+        return json.load(f)
 import socket
 import concurrent.futures
 import time
