@@ -233,7 +233,8 @@ python3 cex_netscan.py
 
 3. Add Nmap to PATH
 
-```git clone https://github.com/cyberempirex/cex-netscan.git
+```
+git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 pip install -r requirements.txt
 python cex_netscan.py
@@ -247,6 +248,19 @@ python cex_netscan.py --ports 1-1000
 python cex_netscan.py --no-color
 
 ```
+## 🐛 Troubleshooting Guide
+
+Common issues users may face and how to resolve them.
+
+| Issue | Solution | Command |
+|------|----------|---------|
+| Permission denied for ARP scan | Run tool with root/sudo | `sudo python3 cex_netscan.py` |
+| No network detected | Check internet connectivity | `ping -c 1 1.1.1.1` |
+| Slow scanning | Reduce scan timeout | Edit `config.json` → `"default_timeout": 2` |
+| Color display issues | Disable colored output | `--no-color` |
+| Python import errors | Install dependencies | `pip install -r requirements.txt` |
+| Nmap not found | Install Nmap | `pkg install nmap` (Termux) |
+
 ### ⚠️ Platform Limitations
 
 Platform        LAN Discovery     Reason
