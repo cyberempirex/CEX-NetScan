@@ -41,3 +41,18 @@ class LoadingAnimation:
             self.thread.join()
         sys.stdout.write("\r" + " " * (len(self.message) + 4) + "\r")
         sys.stdout.flush()
+
+
+class Spinner:
+    """
+    Simple fallback spinner (used if needed by menus)
+    """
+
+    def __init__(self, message="Working..."):
+        self.message = message
+
+    def start(self):
+        print(self.message, end="", flush=True)
+
+    def stop(self):
+        print()

@@ -7,7 +7,7 @@ Interactive menu interface for CEX-NetScan
 import sys
 import time
 from .colors import colors
-from .animations import LoadingAnimation, Spinner
+from .animations import LoadingAnimation
 from .warnings import display_warning, display_notice
 
 class MainMenu:
