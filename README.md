@@ -33,7 +33,7 @@ Unlike many “script scanners” that simulate results, CEX-NetScan only report
 
 ---
 
-🎯 Core Design Philosophy
+# 🎯 Core Design Philosophy
 
 ❌ What CEX-NetScan Refuses to Do
 
@@ -48,7 +48,7 @@ Unlike many “script scanners” that simulate results, CEX-NetScan only report
 ❌ Hide limitations
 
 
-✅ What CEX-NetScan Guarantees
+### ✅ What CEX-NetScan Guarantees
 
 ✅ Real TCP-level scanning
 
@@ -68,7 +68,7 @@ Unlike many “script scanners” that simulate results, CEX-NetScan only report
 
 ---
 
-🧠 Intelligence-Driven Architecture
+### 🧠 Intelligence-Driven Architecture
 
 CEX-NetScan adapts itself based on:
 
@@ -88,7 +88,7 @@ This prevents invalid scans and misleading output.
 
 ---
 
-🛡️ Core Capabilities
+### 🛡️ Core Capabilities
 
 🔎 Environment & Network Awareness
 
@@ -104,7 +104,7 @@ Accuracy Indicators	Confidence labels per scan
 
 ---
 
-🌐 Network Discovery
+### 🌐 Network Discovery
 
 Feature	Status	Notes
 
@@ -117,7 +117,7 @@ LAN Device Listing	Adaptive	Real responses only
 
 ---
 
-🔓 Port Scanning
+### 🔓 Port Scanning
 
 Feature	Supported
 
@@ -135,7 +135,7 @@ UDP Scanning	❌ (planned)
 
 ---
 
-🧪 Network Analysis
+### 🧪 Network Analysis
 
 Interface inspection
 
@@ -151,7 +151,7 @@ Connectivity status
 
 ---
 
-🎨 User Experience Principles
+### 🎨 User Experience Principles
 
 Clean terminal UI
 
@@ -169,7 +169,7 @@ Designed to be usable on low-resource devices, including Android phones.
 
 ---
 
-📂 Project Structure
+### 📂 Project Structure
 
 cex-netscan/
 ├── core/          # Environment & network detection
@@ -207,9 +207,9 @@ cex-netscan/
 
 ---
 
-🚀 Installation Guide
+# 🚀 Installation Guide
 
-📱 Termux (Android)
+### 📱 Termux (Android)
 
 pkg update && pkg upgrade -y
 pkg install python git nmap netdiscover -y
@@ -222,7 +222,7 @@ python cex_netscan.py
 
 ---
 
-🐧 Linux
+### 🐧 Linux
 
 sudo apt update
 sudo apt install python3 python3-pip git nmap netdiscover -y
@@ -234,7 +234,7 @@ python3 cex_netscan.py
 
 ---
 
-🪟 Windows
+### ⌛ Windows
 
 1. Install Python 3.6+
 
@@ -254,7 +254,7 @@ python cex_netscan.py
 
 ---
 
-🎮 Usage Examples
+### 🎮 Usage Examples
 
 python cex_netscan.py --quick
 python cex_netscan.py --target 192.168.1.1
@@ -264,7 +264,7 @@ python cex_netscan.py --no-color
 
 ---
 
-⚠️ Platform Limitations (IMPORTANT)
+# ⚠️ Platform Limitations (IMPORTANT)
 
 Platform	LAN Discovery	Reason
 
@@ -279,7 +279,7 @@ CEX-NetScan will not fake LAN devices on mobile networks.
 
 ---
 
-🔒 Ethical Usage Policy
+### 🔒 Ethical Usage Policy
 
 ✅ Allowed
 
@@ -310,7 +310,7 @@ Illegal reconnaissance
 
 ---
 
-🧭 Roadmap
+### 🧭 Roadmap
 
 Version 2.x
 
@@ -333,7 +333,7 @@ Continuous monitoring
 
 ---
 
-🤝 Contributing
+### 🤝 Contributing
 
 Contributions are welcome only if they respect the “No Fake Data” rule.
 
@@ -349,7 +349,7 @@ Honest documentation
 
 ---
 
-📄 License
+### 📄 License
 
 MIT License
 © CyberEmpireX
@@ -359,7 +359,7 @@ Free for personal and commercial use.
 
 ---
 
-🌐 Community
+### 🌐 Community
 
 GitHub: https://github.com/cyberempirex
 
