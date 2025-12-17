@@ -170,7 +170,7 @@ Designed to be usable on low-resource devices, including Android phones.
 ---
 
 ### 📂 Project Structure
-
+```text
 cex-netscan/
 ├── core/          # Environment & network detection
 │   ├── environment.py
