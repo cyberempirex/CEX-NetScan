@@ -232,16 +232,21 @@ python3 cex_netscan.py
 2. Install Nmap
 
 3. Add Nmap to PATH
-```git clone https://github.com/cyberempirex/cex-netscan.git
+
+```
+git clone https://github.com/cyberempirex/cex-netscan.git
 cd cex-netscan
 pip install -r requirements.txt
 python cex_netscan.py
+
 '''
 ### 🎮 Usage Examples
+
 ```python cex_netscan.py --quick
 python cex_netscan.py --target 192.168.1.1
 python cex_netscan.py --ports 1-1000
 python cex_netscan.py --no-color
+
 ```
 ### ⚠️ Platform Limitations
 
@@ -322,4 +327,4 @@ Website: https://cyberempirex.com
 
 CEX-NetScan exists to teach truth — not to impress with lies.
 >stay safe,stay secure
-              -cyberempirex
+             >cyberempirex
