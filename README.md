@@ -205,11 +205,10 @@ cex-netscan/
 └── README.md
 
 
----
 ```
-🚀 Installation Guide
+### 🚀 Installation Guide
 
-📱 Termux (Android)
+### 📱 Termux (Android)
 ```
 pkg update && pkg upgrade -y
 pkg install python git nmap netdiscover -y
@@ -220,9 +219,8 @@ cd cex-netscan
 python cex_netscan.py
 
 
----
 ```
-🐧 Linux
+### 🐧 Linux
 ```
 sudo apt update
 sudo apt install python3 python3-pip git nmap netdiscover -y
@@ -232,9 +230,8 @@ cd cex-netscan
 python3 cex_netscan.py
 
 
----
 ```
-⌛ Windows
+### ⌛ Windows
 
 1. Install Python 3.6+
 
@@ -248,7 +245,6 @@ pip install -r requirements.txt
 python cex_netscan.py
 
 
----
 '''
 🎮 Usage Examples
 
@@ -258,7 +254,6 @@ python cex_netscan.py --ports 1-1000
 python cex_netscan.py --no-color
 
 
----
 ```
 ⚠️ Platform Limitations
 
