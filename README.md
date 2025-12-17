@@ -280,13 +280,13 @@ CEX-NetScan adapts to network conditions and **will not fake results** when limi
 
 🔒 Ethical Usage Policy
 
-Allowed:
+🔵 Allowed:
 - Your own network
 - Authorized corporate testing
 - Educational labs
 - Research environments
 
-Forbidden:
+🔴 Forbidden:
 - Scanning without permission
 - Attacking systems
 - Surveillance
