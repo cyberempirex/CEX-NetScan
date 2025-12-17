@@ -261,15 +261,19 @@ Common issues users may face and how to resolve them.
 | Python import errors | Install dependencies | `pip install -r requirements.txt` |
 | Nmap not found | Install Nmap | `pkg install nmap` (Termux) |
 
-### ⚠️ Platform Limitations
 
-Platform        LAN Discovery     Reason
-WiFi            ✅ Yes            Full visibility
-Mobile Data     ❌ No             CGNAT isolation
-VPN             ⚠️ Depends        Routing rules
-Offline         ❌ No             No network
+## ⚠️ Platform Limitations
 
-CEX-NetScan will never fake LAN devices on mobile networks.
+CEX-NetScan adapts to network conditions and **will not fake results** when limitations exist.
+
+| Platform | LAN Discovery | Reason |
+|--------|---------------|--------|
+| WiFi | ✅ Yes | Full LAN visibility |
+| Mobile Data | ❌ No | CGNAT isolation |
+| VPN | ⚠️ Depends | Routing rules |
+| Offline | ❌ No | No network connectivity |
+
+> CEX-NetScan will **never fake LAN devices** on mobile or restricted networks.
 
 
 ---
