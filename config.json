@@ -30,7 +30,7 @@
   "enable_colors": true,
   "verbose_output": true,
   "export_format": "txt",
-  "ping_timeout": 1,
+  "ping_timeout": 2,
   "connect_timeout": 2,
   "colors_enabled": false,
   "verbose": false,
