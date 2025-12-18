@@ -13,3 +13,5 @@ Thumbs.db
 # Editors
 *.swp
 *.swo
+__pycache__/
+*.pyc
